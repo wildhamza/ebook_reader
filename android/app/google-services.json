@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1053897309653",
+    "project_id": "ebook-reader-app-68d6e",
+    "storage_bucket": "ebook-reader-app-68d6e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053897309653:android:536f057e153a00ddbd515c",
+        "android_client_info": {
+          "package_name": "com.wildbuster.ebook_reader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdr15SrcgOtWbG9bCj1CO49knXtvh5UtA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
