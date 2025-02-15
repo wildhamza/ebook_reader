@@ -3,18 +3,16 @@
 A simple and performance-friendly eBook Reader built with Flutter and Firebase. Supports Google Sign-In, cloud storage for books, and a basic EPUB/PDF reader.
 
 ## 🚀 Features
-- 🔑 Firebase Authentication (Google Sign-In, Email/Password)
 - 📚 Firestore for storing book metadata
-- ☁️ Firebase Storage for eBook files
+- ☁️ Supabase Storage for eBook files
 - 📖 Basic EPUB/PDF Reader
 - 🔄 Sync reading progress and bookmarks
 - 📶 Offline support (upcoming)
 
 ## 🛠️ Tech Stack
 - **Flutter** (UI framework)
-- **Firebase Auth** (User authentication)
 - **Firestore** (Database for books and user progress)
-- **Firebase Storage** (Cloud storage for eBooks)
+- **Supabase Storage** (Cloud storage for eBooks)
 - **Provider/Riverpod** (State management)
 - **flutter_pdfview** (PDF rendering)
 - **epub_viewer** (EPUB support)
@@ -30,9 +28,8 @@ A simple and performance-friendly eBook Reader built with Flutter and Firebase. 
    flutter pub get
    ```
 3. Configure Firebase:
-    - Create a Firebase project
-    - Enable Authentication (Google & Email/Password)
-    - Set up Firestore and Firebase Storage
+    - Create a Firebase & Supabase project
+    - Set up Firestore and Supabase Storage
     - Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) into the `android/app` and `ios/Runner` directories
 4. Run the app:
    ```sh
@@ -46,7 +43,7 @@ A simple and performance-friendly eBook Reader built with Flutter and Firebase. 
 │── 📂 services/             # Firebase Auth, Firestore, Storage
 │── 📂 providers/            # State management (Provider/Riverpod)
 │── 📂 screens/              # UI Screens
-│    ├── login_screen.dart   # Authentication UI
+│    ├── settings_scree,dart # Settings for font/themes
 │    ├── home_screen.dart    # Main library
 │    ├── reader_screen.dart  # EPUB/PDF viewer
 │── 📂 widgets/              # Reusable UI components
