@@ -1,0 +1,2 @@
+const sb_url = 'https://gloqxgqcwazpyictpxwz.supabase.co';
+const sb_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsb3F4Z3Fjd2F6cHlpY3RweHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk3MDE1NTUsImV4cCI6MjA1NTI3NzU1NX0.3tSopAFhieTvichwQhnxwW58knnGdr5y6Y8E317pPTc';

@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthProvider with ChangeNotifier {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -14,12 +14,14 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final response = await Supabase.instance.client.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      Navigator.pushReplacementNamed(context, "/home");
-    } on FirebaseAuthException catch (e) {
+      if (response.user != null) {
+        Navigator.pushReplacementNamed(context, "/home");
+      }
+    } on AuthException catch (e) {
       _setErrorMessage(e.message);
     } finally {
       _setLoading(false);
@@ -27,7 +29,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
+    await Supabase.instance.client.auth.signOut();
     Navigator.pushReplacementNamed(context, "/login");
   }
 
