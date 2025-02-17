@@ -12,6 +12,6 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await _supabase.signOut();
+    await Supabase.instance.client.auth.signOut();
   }
 }

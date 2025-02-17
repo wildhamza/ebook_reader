@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ebook_reader/screens/reader_screen.dart';
 import 'package:ebook_reader/screens/settings_screen.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadLocalBooks();
     _startColorAnimation();
+    _scanDownloadsFolder();
   }
 
   void _startColorAnimation() {
@@ -56,6 +60,56 @@ class _HomeScreenState extends State<HomeScreen> {
           }).toList() ??
           [];
     });
+  }
+
+  Future<void> _scanDownloadsFolder() async {
+    Directory? downloadsDir = await getDownloadsDirectory();
+    if (downloadsDir != null) {
+      List<FileSystemEntity> files = downloadsDir.listSync(recursive: true);
+      for (var file in files) {
+        if (file.path.endsWith('.epub') || file.path.endsWith('.pdf')) {
+          var book = {
+            "title": file.path.split('/').last,
+            "path": file.path,
+            "coverUrl": "assets/placeholder.jpg",
+            "author": "Unknown",
+          };
+          if (!localBooks.any((b) => b["path"] == book["path"])) {
+            setState(() {
+              localBooks.add(book);
+            });
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _addBookManually() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['epub', 'pdf'],
+    );
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      var book = {
+        "title": file.path.split('/').last,
+        "path": file.path,
+        "coverUrl": "assets/placeholder.jpg",
+        "author": "Unknown",
+      };
+      if (!localBooks.any((b) => b["path"] == book["path"])) {
+        setState(() {
+          localBooks.add(book);
+        });
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        List<String> storedBooks = localBooks.map((book) {
+          return "${book["title"]}|${book["path"]}|${book["coverUrl"]}|${book["author"]}";
+        }).toList();
+        prefs.setStringList('localBooks', storedBooks);
+      }
+    }
   }
 
   @override
@@ -105,6 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildSearchBar(),
           Expanded(child: _buildBookList()),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addBookManually,
+        child: const Icon(Icons.add),
       ),
     );
   }

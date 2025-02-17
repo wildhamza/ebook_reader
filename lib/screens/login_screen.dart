@@ -112,15 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // App Name
-                    Text(
-                      "NOVELS.GG",
-                      style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.blue[200] : Colors.blue[800],
-                      ),
-                    ),
                     const SizedBox(height: 8),
                     // Welcome Text
                     Text(
@@ -207,8 +198,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
+                          _login();
                           if (_formKey.currentState!.validate()) {
-                            _login();
+                            Navigator.pushReplacementNamed(context, "/home");
                           }
                         },
                         style: ElevatedButton.styleFrom(

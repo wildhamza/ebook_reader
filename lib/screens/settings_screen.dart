@@ -1,8 +1,8 @@
+import 'package:ebook_reader/providers/auth_provider.dart';
+import 'package:ebook_reader/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ebook_reader/providers/theme_provider.dart';
-import 'package:ebook_reader/providers/auth_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -101,10 +101,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  AuthProvider().logout(context); // Call the logout method from AuthProvider
+                  AuthProvider().logout(context);
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text("Logout", style: TextStyle(color: Colors.white)),
+                child:
+                    const Text("Logout", style: TextStyle(color: Colors.white)),
               ),
             ),
           ],

@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class DatabaseService extends ChangeNotifier {
-  final _db = Supabase.instance.client;
+class DatabaseService {
+  final supabase = Supabase.instance.client;
 
-  Future<void> saveUserInfo(String userId, String name, String email, String password) async {
-    await _db.from('user_information').insert({
+  Future<void> saveUserInfo(
+      String userId, String name, String email, String password) async {
+    await supabase.from('user_information').upsert({
       'id': userId,
       'name': name,
       'email': email,
-      'password': password, // Consider hashing before storing
+      'created_at': DateTime.now().toIso8601String(),
     });
   }
 }

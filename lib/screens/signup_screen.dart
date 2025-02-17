@@ -48,24 +48,34 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _signup() async {
     setState(() => _isLoading = true);
     try {
+      // Sign up the user
       final response = await Supabase.instance.client.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      final userId = response.user?.id;
-      await DatabaseService().saveUserInfo(
-        userId!,
-        _nameController.text.trim(),
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
 
-      // Ensure the user is authenticated and push to home screen
-      final loggedInUser = Supabase.instance.client.auth.currentUser;
-      if (loggedInUser != null) {
-        Navigator.pushReplacementNamed(context, "/home");
+      // Check if the user was created successfully
+      if (response.user != null) {
+        final userId = response.user!.id;
+
+        // Save additional user info to your database (if needed)
+        await DatabaseService().saveUserInfo(
+          userId,
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+
+        // Check if the user is authenticated (session is persisted)
+        final loggedInUser = Supabase.instance.client.auth.currentUser;
+        if (loggedInUser != null) {
+          // Redirect to the home screen
+          Navigator.pushReplacementNamed(context, "/home");
+        } else {
+          setState(() => _errorMessage = "User not authenticated.");
+        }
       } else {
-        setState(() => _errorMessage = "User not authenticated.");
+        setState(() => _errorMessage = "User creation failed.");
       }
     } on AuthException catch (e) {
       setState(() => _errorMessage = e.message);
