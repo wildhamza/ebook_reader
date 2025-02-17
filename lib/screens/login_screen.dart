@@ -1,6 +1,12 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../providers/theme_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,10 +21,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+  Color _color1 = Colors.deepPurple;
+  Color _color2 = Colors.indigo;
+
+  @override
+  void initState() {
+    super.initState();
+    _startColorAnimation();
+  }
+
+  void _startColorAnimation() {
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      setState(() {
+        _color1 = Color.fromARGB(
+            255, Random().nextInt(55) + 200, Random().nextInt(55) + 50, 255);
+        _color2 = Color.fromARGB(
+            255, Random().nextInt(55) + 200, Random().nextInt(55) + 50, 255);
+      });
+    });
+  }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -31,11 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.user != null) {
-        Navigator.pushReplacementNamed(context, "/home");
-      } else {
-        setState(() {
-          _errorMessage = "Invalid email or password";
-        });
+        print("User status: ${response.user!.emailConfirmedAt}");
+        if (response.user!.emailConfirmedAt == null) {
+          setState(() {
+            _errorMessage = "Email not confirmed. Please check your inbox.";
+          });
+        } else {
+          Navigator.pushReplacementNamed(context, "/home");
+        }
       }
     } on AuthException catch (e) {
       setState(() {
@@ -50,139 +77,194 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Welcome Back!",
-                style: GoogleFonts.poppins(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "Login to continue",
-                style: GoogleFonts.poppins(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 40),
+    final themeProvider = context.read<ThemeProvider>();
+    final isDarkMode = themeProvider.isDarkMode;
 
-              // Form
-              Form(
-                key: _formKey,
+    return Scaffold(
+      body: Stack(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(seconds: 5),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_color1, _color2],
+              ),
+            ),
+          ),
+          Center(
+            child: SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey[900] : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Email Field
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: "Email",
-                        prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    // App Name
+                    Text(
+                      "NOVELS.GG",
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.blue[200] : Colors.blue[800],
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your email";
-                        }
-                        if (!RegExp(
-                            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-                            .hasMatch(value)) {
-                          return "Enter a valid email";
-                        }
-                        return null;
-                      },
+                    ),
+                    const SizedBox(height: 8),
+                    // Welcome Text
+                    Text(
+                      "Welcome Back!",
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      "Login to continue",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 20),
 
-                    // Password Field
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    // Form Fields
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          // Email Field
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: "Email",
+                              prefixIcon: const Icon(Icons.email),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            style: TextStyle(
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Please enter your email";
+                              }
+                              if (!RegExp(
+                                      r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                                  .hasMatch(value)) {
+                                return "Enter a valid email";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 15),
+
+                          // Password Field
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: "Password",
+                              prefixIcon: const Icon(Icons.lock),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            style: TextStyle(
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Please enter your password";
+                              }
+                              if (value.length < 6) {
+                                return "Password must be at least 6 characters";
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _login();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[800],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: Text(
+                          "Login",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your password";
-                        }
-                        if (value.length < 6) {
-                          return "Password must be at least 6 characters";
-                        }
-                        return null;
+                    ),
+                    const SizedBox(height: 15),
+
+                    // Sign Up Link
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, "/register");
                       },
+                      child: Text(
+                        "Don't have an account? Sign Up",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              isDarkMode ? Colors.blue[300] : Colors.blue[800],
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-
-              // Error Message
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red, fontSize: 14),
-                  ),
-                ),
-
-              // Login Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                    "Login",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15),
-
-              // Sign Up Link
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, "/signup");
-                },
-                child: Text(
-                  "Don't have an account? Sign Up",
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.blueAccent,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white70),
+      prefixIcon: Icon(icon, color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white10,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
       ),
     );
   }

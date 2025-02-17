@@ -29,27 +29,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (context) =>
-                ThemeProvider(context)),
+        ChangeNotifierProvider(create: (context) => ThemeProvider(context)),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'eBook Reader',
-            theme: themeProvider.isDarkMode
-                ? ThemeData.dark()
-                : ThemeData.light(),
-            initialRoute: '/login',
-            routes: {
-              '/home': (context) => const HomeScreen(),
-              '/login': (context) => const LoginScreen(),
-              '/signup': (context) => const SignupScreen(),
-            }
+              title: 'eBook Reader',
+              theme: themeProvider.isDarkMode
+                  ? ThemeData.dark()
+                  : ThemeData.light(),
+              initialRoute: '/login',
+              routes: {
+                '/home': (context) => const HomeScreen(),
+                '/login': (context) => const LoginScreen(),
+                '/register': (context) => const SignupScreen(),
+              }
               // Add the following routes
               // '/home': (context) => HomeScreen(),
               // '/login': (context) => LoginScreen(),
-          );
+              );
         },
       ),
     );

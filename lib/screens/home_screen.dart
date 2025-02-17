@@ -1,9 +1,11 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ebook_reader/screens/reader_screen.dart';
 import 'package:ebook_reader/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,108 +17,93 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String searchQuery = "";
-  String selectedCategory = "All";
   List<Map<String, dynamic>> localBooks = [];
+  Color _color1 = Colors.deepPurple;
+  Color _color2 = Colors.indigo;
 
   @override
   void initState() {
     super.initState();
     _loadLocalBooks();
+    _startColorAnimation();
+  }
+
+  void _startColorAnimation() {
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      setState(() {
+        _color1 = Color.fromARGB(
+            255, Random().nextInt(100) + 100, Random().nextInt(100) + 100, 255);
+        _color2 = Color.fromARGB(
+            255, Random().nextInt(100) + 100, Random().nextInt(100) + 100, 255);
+      });
+    });
   }
 
   Future<void> _loadLocalBooks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? storedBooks = prefs.getStringList('localBooks');
 
-    if (storedBooks != null) {
-      setState(() {
-        localBooks = storedBooks.map((book) {
-          var details = book.split('|');
-          return {
-            "title": details.isNotEmpty ? details[0] : "Unknown Title",
-            "path": details.length > 1 ? details[1] : "",
-            "coverUrl":
-                details.length > 2 ? details[2] : "assets/placeholder.jpg",
-            "author": details.length > 3 ? details[3] : "Unknown",
-          };
-        }).toList();
-      });
-    }
-  }
-
-  Future<void> _addBookManually() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'epub'],
-    );
-
-    if (result != null) {
-      setState(() {
-        localBooks.add({
-          "title": result.files.first.name,
-          "path": result.files.first.path!,
-          "coverUrl": "assets/placeholder.jpg",
-          "author": "Unknown",
-        });
-        var bookpath = result.files.first.path!;
-        print(bookpath);
-      });
-    }
+    setState(() {
+      localBooks = storedBooks?.map((book) {
+            var details = book.split('|');
+            return {
+              "title": details.isNotEmpty ? details[0] : "Unknown Title",
+              "path": details.length > 1 ? details[1] : "",
+              "coverUrl":
+                  details.length > 2 ? details[2] : "assets/placeholder.jpg",
+              "author": details.length > 3 ? details[3] : "Unknown",
+            };
+          }).toList() ??
+          [];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.blueAccent,
-        title: Center(
-          child: Text(
-            'EBook Reader',
-            style: GoogleFonts.tajawal(
-                color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: AnimatedContainer(
+          duration: const Duration(seconds: 3),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_color1, _color2],
+            ),
+          ),
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text(
+              'EBook Reader',
+              style: GoogleFonts.aBeeZee(
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SettingsScreen()),
+                  );
+                },
+              ),
+            ],
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsScreen()));
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
           _buildSearchBar(),
           Expanded(child: _buildBookList()),
-        ],
-      ),
-      floatingActionButton: Stack(
-        children: [
-          Align(
-            alignment: Alignment.bottomRight,
-            child: FloatingActionButton(
-              onPressed: _addBookManually,
-              child: const Icon(
-                Icons.add,
-                size: 35,
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: FloatingActionButton(
-              onPressed: _loadLocalBooks,
-              child: const Icon(
-                Icons.edit,
-                size: 35,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -142,9 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBookList() {
     List<Map<String, dynamic>> filteredBooks = localBooks.where((book) {
-      bool matchesSearch = searchQuery.isEmpty ||
+      return searchQuery.isEmpty ||
           book["title"].toLowerCase().contains(searchQuery.toLowerCase());
-      return matchesSearch;
     }).toList();
 
     return filteredBooks.isEmpty
@@ -184,21 +170,15 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: book["coverUrl"].startsWith('assets/')
-                  ? Image.asset(
-                      book["coverUrl"],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: book["coverUrl"],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.book),
-                    ),
+              child: CachedNetworkImage(
+                imageUrl: book["coverUrl"],
+                fit: BoxFit.cover,
+                width: double.infinity,
+                placeholder: (context, url) =>
+                    const Center(child: CircularProgressIndicator()),
+                errorWidget: (context, url, error) =>
+                    const Icon(Icons.book, size: 50),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),

@@ -1,7 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:hive/hive.dart';
 
 class StorageService {
   final _storage = Supabase.instance.client.storage;
