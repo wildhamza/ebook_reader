@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:ebook_reader/providers/theme_provider.dart';
 import 'package:epubx/epubx.dart';
@@ -35,6 +37,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     super.initState();
     _loadLastReadPosition();
     _loadBook();
+    _startColorAnimation();
   }
 
   Future<void> _loadLastReadPosition() async {
@@ -99,24 +102,54 @@ class _ReaderScreenState extends State<ReaderScreen> {
     return allChapters;
   }
 
+  Color _color1 = Colors.deepPurple;
+  Color _color2 = Colors.indigo;
+
+  void _startColorAnimation() {
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      setState(() {
+        _color1 = Color.fromARGB(
+            255, Random().nextInt(100) + 100, Random().nextInt(100) + 100, 255);
+        _color2 = Color.fromARGB(
+            255, Random().nextInt(100) + 100, Random().nextInt(100) + 100, 255);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.bookTitle,
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.brightness_6),
-            onPressed: themeProvider.toggleTheme,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: AnimatedContainer(
+          duration: const Duration(seconds: 3),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_color1, _color2],
+            ),
           ),
-        ],
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(widget.bookTitle,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios_new),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.brightness_6),
+                onPressed: themeProvider.toggleTheme,
+              ),
+            ],
+          ),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
