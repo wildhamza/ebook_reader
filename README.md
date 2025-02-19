@@ -1,6 +1,6 @@
 # 📖 eBook Reader App
 
-A simple and performance-friendly eBook Reader built with Flutter and Firebase. Supports Google Sign-In, cloud storage for books, and a basic EPUB/PDF reader.
+A simple and performance-friendly eBook Reader built with Flutter and Supabase. Supports Google Sign-In, cloud storage for books, and a basic EPUB/PDF reader.
 
 ## 🚀 Features
 - 📚 Firestore for storing book metadata
@@ -11,8 +11,7 @@ A simple and performance-friendly eBook Reader built with Flutter and Firebase. 
 
 ## 🛠️ Tech Stack
 - **Flutter** (UI framework)
-- **Firestore** (Database for books and user progress)
-- **Supabase Storage** (Cloud storage for eBooks)
+- **Supabase** (Backend & Storage)
 - **Provider/Riverpod** (State management)
 - **flutter_pdfview** (PDF rendering)
 - **epub_viewer** (EPUB support)
@@ -27,10 +26,11 @@ A simple and performance-friendly eBook Reader built with Flutter and Firebase. 
    ```sh
    flutter pub get
    ```
-3. Configure Firebase:
-    - Create a Firebase & Supabase project
-    - Set up Firestore and Supabase Storage
-    - Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) into the `android/app` and `ios/Runner` directories
+3. Configure Supabase:
+    - Create a Supabase project
+    - Set up authentication and database tables
+    - Obtain your Supabase URL and API Key
+    - Add them to your `.env` file
 4. Run the app:
    ```sh
    flutter run
@@ -40,10 +40,10 @@ A simple and performance-friendly eBook Reader built with Flutter and Firebase. 
 ```
 📂 lib/
 │── 📂 models/               # Data models (User, Book, Progress)
-│── 📂 services/             # Firebase Auth, Firestore, Storage
+│── 📂 services/             # Supabase Auth, Database, Storage
 │── 📂 providers/            # State management (Provider/Riverpod)
 │── 📂 screens/              # UI Screens
-│    ├── settings_scree,dart # Settings for font/themes
+│    ├── settings_screen.dart # Settings for font/themes
 │    ├── home_screen.dart    # Main library
 │    ├── reader_screen.dart  # EPUB/PDF viewer
 │── 📂 widgets/              # Reusable UI components
@@ -59,5 +59,4 @@ A simple and performance-friendly eBook Reader built with Flutter and Firebase. 
 Feel free to submit issues and pull requests. Let's build a great eBook reader together!
 
 ## 📜 License
-This project is licensed under the MIT License.
-
+This project is licensed under the **MIT License**
