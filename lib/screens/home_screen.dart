@@ -221,6 +221,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+      onLongPress: () {
+        _showRemoveBookDialog(book);
+      },
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -267,5 +270,47 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void _showRemoveBookDialog(Map<String, dynamic> book) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Remove Book"),
+        content: const Text("Are you sure you want to remove this book?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              _removeBook(book);
+              Navigator.pop(context);
+            },
+            child: const Text("Remove"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _removeBook(Map<String, dynamic> book) async {
+    setState(() {
+      localBooks.removeWhere((b) => b["path"] == book["path"]);
+    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> storedBooks = localBooks.map((book) {
+      return "${book["title"]}|${book["path"]}|${book["coverUrl"]}|${book["author"]}";
+    }).toList();
+    await prefs.setStringList('localBooks', storedBooks);
+    await _clearCache();
+  }
+
+  Future<void> _clearCache() async {
+    final cacheDir = await getTemporaryDirectory();
+    if (cacheDir.existsSync()) {
+      cacheDir.deleteSync(recursive: true);
+    }
   }
 }

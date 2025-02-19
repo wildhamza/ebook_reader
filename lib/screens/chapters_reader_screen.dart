@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:epubx/epubx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/theme_provider.dart';
@@ -137,6 +138,12 @@ class _ChapterReaderState extends State<ChapterReader> {
                 ),
                 onPressed: () => _navigateToChapter(widget.chapterIndex - 1),
               ),
+            IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                _openChapterDrawer();
+              },
+            ),
             if (widget.chapterIndex < widget.chapters.length - 1)
               IconButton(
                 tooltip: 'Next Chapter',
@@ -149,6 +156,30 @@ class _ChapterReaderState extends State<ChapterReader> {
           ],
         ),
       ),
+    );
+  }
+
+  void _openChapterDrawer() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: widget.chapters.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(
+                widget.chapters[index].Title ?? "Chapter ${index + 1}",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.aBeeZee(),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToChapter(index);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
