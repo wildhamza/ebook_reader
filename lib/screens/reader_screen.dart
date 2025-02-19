@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:ebook_reader/providers/theme_provider.dart';
 import 'package:epubx/epubx.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'chapters_reader_screen.dart';
 
 class ReaderScreen extends StatefulWidget {
   final String bookPath;
@@ -22,14 +24,31 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool isPdf = false;
   EpubBook? _epubBook;
   List<EpubChapter>? _chapters;
-  String? _selectedChapterContent;
   bool isLoading = true;
   String? _errorMessage;
+  int _lastReadChapterIndex = 0;
+  int _lastReadPage = 0;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
+    _loadLastReadPosition();
     _loadBook();
+  }
+
+  Future<void> _loadLastReadPosition() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _lastReadChapterIndex = prefs.getInt('lastReadChapter') ?? 0;
+      _lastReadPage = prefs.getInt('lastReadPage') ?? 0;
+    });
+  }
+
+  Future<void> _saveLastReadPosition(int chapterIndex, int pageIndex) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lastReadChapter', chapterIndex);
+    await prefs.setInt('lastReadPage', pageIndex);
   }
 
   Future<void> _loadBook() async {
@@ -40,7 +59,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     try {
       isPdf = widget.bookPath.toLowerCase().endsWith(".pdf");
-
       if (!isPdf) {
         File epubFile = File(widget.bookPath);
         if (epubFile.existsSync()) {
@@ -87,7 +105,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.bookTitle),
+        title: Text(widget.bookTitle,
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
@@ -98,10 +121,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
+              ? Center(
+                  child: Text(_errorMessage!,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500)))
               : isPdf
                   ? _buildPdfViewer()
-                  : _buildEpubViewer(),
+                  : _buildChapterList(),
     );
   }
 
@@ -114,47 +140,35 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
-  Widget _buildEpubViewer() {
-    if (_selectedChapterContent != null) {
-      return Column(
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _selectedChapterContent = null;
-              });
-            },
-            child: const Text("Back to Chapters"),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Html(data: _selectedChapterContent!),
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_chapters == null || _chapters!.isEmpty) {
-      return const Center(
-        child: Text(
-          "EPUB loaded but no TOC found. Try navigating manually.",
-          style: TextStyle(fontSize: 16),
-        ),
-      );
-    }
+  Widget _buildChapterList() {
     return ListView.builder(
-      itemCount: _chapters!.length,
+      padding: EdgeInsets.all(12.0),
+      itemCount: _chapters?.length ?? 0,
       itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(_chapters![index].Title ?? "Untitled Chapter"),
-          onTap: () {
-            setState(() {
-              _selectedChapterContent =
-                  _chapters![index].HtmlContent ?? "No content available";
-            });
-          },
+        return Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            title: Center(
+              child: Text(
+                _chapters![index].Title ?? "Untitled Chapter",
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChapterReader(
+                    chapterIndex: index,
+                    chapters: _chapters!,
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );
