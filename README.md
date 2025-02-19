@@ -3,7 +3,7 @@
 A simple and performance-friendly eBook Reader built with Flutter and Supabase. Supports Google Sign-In, cloud storage for books, and a basic EPUB/PDF reader.
 
 ## 🚀 Features
-- 📚 Firestore for storing book metadata
+- 📚 Supabase for storing book metadata
 - ☁️ Supabase Storage for eBook files
 - 📖 Basic EPUB/PDF Reader
 - 🔄 Sync reading progress and bookmarks
