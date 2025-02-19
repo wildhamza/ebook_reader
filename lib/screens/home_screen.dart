@@ -196,8 +196,8 @@ class _HomeScreenState extends State<HomeScreen> {
         : GridView.builder(
             padding: const EdgeInsets.all(10),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.7,
+              crossAxisCount: 1,
+              childAspectRatio: 3,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
             ),
@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (context) => ReaderScreen(
               bookTitle: book["title"],
-              bookPath: book['path'],
+              bookPath: book["path"],
             ),
           ),
         );
@@ -224,10 +224,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            Flexible(
+              flex: 2,
               child: CachedNetworkImage(
                 imageUrl: book["coverUrl"],
                 fit: BoxFit.cover,
@@ -238,22 +239,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(Icons.book, size: 50),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                book["title"],
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                    fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
-              child: Text(
-                book["author"] ?? "Unknown",
-                style:
-                    GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
+            Flexible(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book["title"],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      book["author"] ?? "Unknown",
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

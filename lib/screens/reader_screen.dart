@@ -11,11 +11,8 @@ class ReaderScreen extends StatefulWidget {
   final String bookPath;
   final String bookTitle;
 
-  const ReaderScreen({
-    super.key,
-    required this.bookPath,
-    required this.bookTitle,
-  });
+  const ReaderScreen(
+      {super.key, required this.bookPath, required this.bookTitle});
 
   @override
   _ReaderScreenState createState() => _ReaderScreenState();
@@ -26,10 +23,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   EpubBook? _epubBook;
   List<EpubChapter>? _chapters;
   String? _selectedChapterContent;
-  int currentPage = 0;
-  int totalPages = 1;
-  double progress = 0.0;
-  double fontSize = 16.0;
   bool isLoading = true;
   String? _errorMessage;
 
@@ -39,12 +32,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _loadBook();
   }
 
-  void _changeFontSize(double delta) {
-    setState(() {
-      fontSize = (fontSize + delta).clamp(12.0, 24.0);
-    });
-  }
-
   Future<void> _loadBook() async {
     setState(() {
       isLoading = true;
@@ -52,33 +39,46 @@ class _ReaderScreenState extends State<ReaderScreen> {
     });
 
     try {
-      final fileExtension = widget.bookPath.split('.').last.toLowerCase();
-      isPdf = fileExtension == "pdf";
+      isPdf = widget.bookPath.toLowerCase().endsWith(".pdf");
 
       if (!isPdf) {
         File epubFile = File(widget.bookPath);
         if (epubFile.existsSync()) {
           final epubBytes = await epubFile.readAsBytes();
           _epubBook = await EpubReader.readBook(epubBytes);
-
-          // Debugging prints
-          print("EPUB Book Loaded: ${_epubBook?.Title}");
-          print("Chapters Found: ${_epubBook?.Chapters?.length}");
-
-          // Retrieve chapters correctly
-          _chapters = _epubBook?.Chapters ?? [];
+          _chapters = _epubBook?.Chapters != null
+              ? _flattenChapters(_epubBook!.Chapters!)
+              : [];
         } else {
           _errorMessage = "EPUB file not found: ${widget.bookPath}";
         }
       }
     } catch (e) {
       _errorMessage = "Failed to load book: $e";
-      print("Error loading EPUB: $e");
     } finally {
       setState(() {
         isLoading = false;
       });
     }
+  }
+
+  List<EpubChapter> _flattenChapters(List<EpubChapter> chapters) {
+    List<EpubChapter> allChapters = [];
+    void extractChapters(EpubChapter chapter) {
+      if (chapter.HtmlContent != null && chapter.HtmlContent!.isNotEmpty) {
+        allChapters.add(chapter);
+      }
+      if (chapter.SubChapters != null && chapter.SubChapters!.isNotEmpty) {
+        for (var subChapter in chapter.SubChapters!) {
+          extractChapters(subChapter);
+        }
+      }
+    }
+
+    for (var chapter in chapters) {
+      extractChapters(chapter);
+    }
+    return allChapters;
   }
 
   @override
@@ -91,9 +91,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.brightness_6),
-            onPressed: () {
-              themeProvider.toggleTheme();
-            },
+            onPressed: themeProvider.toggleTheme,
           ),
         ],
       ),
@@ -101,14 +99,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
               ? Center(child: Text(_errorMessage!))
-              : Column(
-                  children: [
-                    LinearProgressIndicator(value: progress),
-                    Expanded(
-                      child: isPdf ? _buildPdfViewer() : _buildEpubViewer(),
-                    ),
-                  ],
-                ),
+              : isPdf
+                  ? _buildPdfViewer()
+                  : _buildEpubViewer(),
     );
   }
 
@@ -116,21 +109,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
     return PDFView(
       filePath: widget.bookPath,
       enableSwipe: true,
-      swipeHorizontal: false,
       autoSpacing: true,
       pageSnap: true,
-      fitPolicy: FitPolicy.BOTH,
-      onRender: (pages) {
-        setState(() {
-          totalPages = pages ?? 1;
-        });
-      },
-      onPageChanged: (page, _) {
-        setState(() {
-          currentPage = page ?? 0;
-          progress = (currentPage + 1) / totalPages;
-        });
-      },
     );
   }
 
@@ -157,7 +137,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
 
     if (_chapters == null || _chapters!.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           "EPUB loaded but no TOC found. Try navigating manually.",
           style: TextStyle(fontSize: 16),
@@ -171,7 +151,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
           title: Text(_chapters![index].Title ?? "Untitled Chapter"),
           onTap: () {
             setState(() {
-              _selectedChapterContent = _chapters![index].HtmlContent;
+              _selectedChapterContent =
+                  _chapters![index].HtmlContent ?? "No content available";
             });
           },
         );
