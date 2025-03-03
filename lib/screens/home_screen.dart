@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _color2 = Color.fromARGB(
             255, Random().nextInt(100) + 100, Random().nextInt(100) + 100, 255);
       });
-    });
+    }); //timer
   }
 
   Future<void> _loadLocalBooks() async {
